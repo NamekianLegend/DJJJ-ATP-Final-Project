@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Home</title>
+    <link rel="stylesheet" th:href="@{/css/home.css}">
+</head>
+<body>
+    <div class="card">
+        <h1 id="welcome">Welcome, <span th:text="${username}"></span>!</h1>
+
+        <h2>Your Borrowed Books:</h2>
+        <table>
+            <tr><th>Title</th><th>Author</th><th>Due Date</th></tr>
+            <tr th:each="book : ${borrowedBooks}">
+                <td th:text="${book.title}">Book Title</td>
+                <td th:text="${book.author}">Book Author</td>
+                <td th:text="${book.dueDate}">Due Date</td>
+            </tr>
+        </table>
+        <p style="margin-top:16px;"><a th:href="@{/login}">Log out</a></p>
+    </div>
+
+    
+</body>
+</html>
