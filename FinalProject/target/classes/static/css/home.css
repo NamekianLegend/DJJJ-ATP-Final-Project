@@ -5,7 +5,7 @@ body {
     display:flex; 
     align-items:center; 
     justify-content:center; 
-    background: linear-gradient(135deg, #2f855a 0%, #7bd389 100%);
+    background: linear-gradient(120deg, #2a9b30 50%, #40ec5d 100%);
 }
 
 .card { 
