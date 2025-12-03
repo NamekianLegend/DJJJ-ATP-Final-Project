@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" th:xmlns="http://www.thymeleaf.org">
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
@@ -12,13 +12,33 @@
 
         <h2>Your Borrowed Books:</h2>
         <table>
-            <tr><th>Title</th><th>Author</th><th>Due Date</th></tr>
-            <tr th:each="book : ${borrowedBooks}">
-                <td th:text="${book.title}">Book Title</td>
-                <td th:text="${book.author}">Book Author</td>
-                <td th:text="${book.dueDate}">Due Date</td>
+            <tr><th>Title</th><th>Author</th><th>Due Date</th><th>Action</th></tr>
+            <tr th:each="event : ${borrowedBooks}">
+                <td th:text="${event.book.title}">Book Title</td>
+                <td th:text="${event.book.author}">Book Author</td>
+                <td th:text="${event.book.dueDate}">Due Date</td>
+                <td>
+                    <form th:action="@{/return}" method="post">
+                        <button type="submit">Return</button>
+                    </form>
+                </td>
             </tr>
         </table>
+
+        <h2>Available Books:</h2>
+        <table>
+            <tr><th>Title</th><th>Author</th><th>Action</th></tr>
+            <tr th:each="book : ${availableBooks}">
+                <td th:text="${book.title}">Book Title</td>
+                <td th:text="${book.author}">Book Author</td>
+                <td>
+                    <form th:action="@{/borrow}" method="post">
+                        <button type="submit">Borrow</button>
+                    </form>
+                </td>
+            </tr>
+        </table>
+
         <p style="margin-top:16px;"><a th:href="@{/login}">Log out</a></p>
     </div>
 
