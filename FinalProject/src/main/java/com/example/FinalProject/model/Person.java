@@ -1,0 +1,59 @@
+package com.example.FinalProject.model;
+
+import java.util.ArrayList;
+
+public class Person {
+    
+    private String name;
+    private String email;
+    private String password;
+    private ArrayList<Book> booksBorrowed = new ArrayList<>();
+
+    Person(){};
+
+    Person(String name, String email, String password){
+        this.name = name;
+        this.email = email;
+        this.password = password;
+    }
+
+    //Getters and Setters
+    public String getName() {
+        return name;
+    }
+
+
+    public void setName(String name) {
+        this.name = name;
+    }
+
+
+    public String getEmail() {
+        return email;
+    }
+
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+
+    public ArrayList<Book> getBooksBorrowed() {
+        return booksBorrowed;
+    }
+
+
+    public void addBook(Book book) {
+        this.booksBorrowed.add(book);
+    }
+
+
+    public String getPassword() {
+        return password;
+    }
+
+
+    public void setPassword(String password) {
+        this.password = password;
+    }    
+}

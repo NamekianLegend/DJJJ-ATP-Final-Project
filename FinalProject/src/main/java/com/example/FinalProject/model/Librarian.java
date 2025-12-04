@@ -1,23 +1,42 @@
 package com.example.FinalProject.model;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.GeneratedValue;
+import jakarta.persistence.GenerationType;
+import jakarta.persistence.Id;
+
+
+@Entity
 public class Librarian extends Person{
-    private Library library;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    Librarian(String fName, String lName, String password, Library library){
-        super(fName, lName, password);
+    private String username;
 
+
+
+
+    Librarian(String name, String email, String password){
+        super(name, email, password);
+
+        username = "L"+id;
         
-        /*copying the reference meaning all librarians see
-        the same thing even if they change somehtning*/
-        this.library = library; 
-    }
-
-    public void addBook(Book book){
-        library.addBook(book);
-    }
-
-    public void removeBook(Book book){
-        library.removeBook(book);
     }
     
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+        public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
 }
