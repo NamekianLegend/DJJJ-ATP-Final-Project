@@ -1,9 +1,11 @@
+
 package com.example.FinalProjectATP.model;
 
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PostPersist;
 
 
 @Entity
@@ -18,14 +20,12 @@ public class Borrower extends Person{
 
     int amountOfBooks = 0;
 
+    public Borrower(){};
 
 
-    Borrower(String name, String email, String password){
+    public Borrower(String name, String email, String password){
         super(name,email,password);
-        username = "B"+id;
     }
-
-
 
     public Long getId() {
         return id;
@@ -39,8 +39,17 @@ public class Borrower extends Person{
         return username;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    @PostPersist //call after saved in db so can make username based off of id
+    public void setUsername() {
+        this.username = "B"+getId();
+    }
+
+    public void displayDetails(){
+        System.out.println("Email: "+getEmail());
+        System.out.println("Name: "+getName());
+        System.out.println("Password: "+getPassword());
+        System.out.println("ID: "+getId());
+        System.out.println("Username: "+getUsername());
     }
 
     

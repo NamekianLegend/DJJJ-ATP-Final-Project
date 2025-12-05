@@ -7,6 +7,9 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
+import jakarta.persistence.MappedSuperclass;
+
+@MappedSuperclass
 public class Person {
 
     @NotBlank(message = "No Blanks ")
@@ -28,7 +31,10 @@ public class Person {
     // lower than 6 characters, it no workie :D
     @Size(min = 6, max = 120, message = "Password must be between 6 and 120 characters!")
     // One upper case, one lower case
-   @Pattern(regexp="^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.[@$!%?&])[A-Za-z\\d@$!%?&]{8,}$", message="Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character")
+    @Pattern(
+        regexp = "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%?&])[A-Za-z\\d@$!%?&]{6,120}$",
+        message = "Password must contain at least one uppercase letter, one lowercase letter, one digit, and one special character"
+    )
     private String password;
 
     private ArrayList<Book> booksBorrowed = new ArrayList<>();

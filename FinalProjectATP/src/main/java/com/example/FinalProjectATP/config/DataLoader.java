@@ -1,3 +1,4 @@
+
 package com.example.FinalProjectATP.config;
 
 import org.springframework.boot.CommandLineRunner;
@@ -9,6 +10,7 @@ import com.example.FinalProjectATP.repository.BookRepository;
 
 @Configuration
 public class DataLoader {
+
     @Bean
     CommandLineRunner loadBooks(BookRepository bookRepository) {
         return args -> {

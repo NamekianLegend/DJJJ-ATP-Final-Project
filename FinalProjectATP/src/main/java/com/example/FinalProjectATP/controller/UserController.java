@@ -1,3 +1,4 @@
+
 package com.example.FinalProjectATP.controller;
 
 import java.util.List;
@@ -9,37 +10,46 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.example.FinalProjectATP.model.Book;
+import com.example.FinalProjectATP.model.Borrower;
 import com.example.FinalProjectATP.repository.BookRepository;
+import com.example.FinalProjectATP.repository.BorrowerRepository;
 
 import jakarta.servlet.http.HttpSession;
+import jakarta.validation.Valid;
 
 @Controller
 public class UserController {
     private final BookRepository bookRepository;
+    private final BorrowerRepository borrowerRepository;
 
-    public UserController(BookRepository bookRepository) {
+    public UserController(BookRepository bookRepository, BorrowerRepository borrowerRepository) {
         this.bookRepository = bookRepository;
+        this.borrowerRepository = borrowerRepository;
     }
 
     // Login
     @PostMapping("/login")
-    public String processLogin(@RequestParam String user, @RequestParam String password, Model model) {
+    public String processLogin(@RequestParam String email, @RequestParam String password, Model model) {
+        List<Borrower> borrowers = borrowerRepository.findAll();
+        for(Borrower borrower: borrowers){
+            if(borrower.getEmail().equals(email)&&borrower.getPassword().equals(password)){
+                model.addAttribute("username", borrower.getName());
 
-        model.addAttribute("username", user);
+                // return a list of books if isBorrowed is false to the model
+                model.addAttribute("availableBooks",
+                bookRepository.findAll().stream().filter(book -> !book.isBorrowed()).toList());
 
-        // return a list of books if isBorrowed is false to the model
-        model.addAttribute("availableBooks",
+                // return a list of books if isBorrowed is true to the model
+                model.addAttribute("borrowedBooks",
                 bookRepository.findAll().stream()
-                        .filter(book -> !book.isBorrowed())
-                        .toList());
+                    .filter(Book::isBorrowed)
+                    .toList());
 
-        // return a list of books if isBorrowed is true to the model
-        model.addAttribute("borrowedBooks",
-                bookRepository.findAll().stream()
-                        .filter(Book::isBorrowed)
-                        .toList());
+                return "home";
+            }
+        }
 
-        return "home";
+        return "login";
     }
 
     //Borrow book
@@ -103,13 +113,20 @@ public class UserController {
 
     // Handle register form submission
     @PostMapping("/register")
-    public String processRegister(@RequestParam String name,
-            @RequestParam String email,
-            @RequestParam String password,
+    public String processRegister(@Valid @RequestParam String name,
+           @Valid @RequestParam String email,
+            @Valid @RequestParam String password, @Valid @RequestParam String confirm,
             Model model) {
-        // For testing: just echo back the name
-        model.addAttribute("username", name);
-        return "login";
+        if(password.equals(confirm)){
+            Borrower tempBorrower = new Borrower(name,email,password);
+            
+            borrowerRepository.save(tempBorrower);
+            System.out.println("\nUSER REGISTRATION");
+            tempBorrower.displayDetails();
+            return "login";
+        }
+        
+        return "register";
     }
 
     @GetMapping("/logout")
