@@ -114,7 +114,7 @@ public class UserController {
     // Handle register form submission
     @PostMapping("/register")
     public String processRegister(@Valid @RequestParam String name,
-           @Valid @RequestParam String email,
+            @Valid @RequestParam String email,
             @Valid @RequestParam String password, @Valid @RequestParam String confirm,
             Model model) {
         if(password.equals(confirm)){
