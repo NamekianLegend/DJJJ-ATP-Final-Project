@@ -1,5 +1,7 @@
 package com.example.FinalProjectATP.model;
 
+import java.time.LocalDate;
+
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -14,8 +16,8 @@ public class Book {
     private String title;
     private String author;
     private boolean borrowed = false;
-    private String borrowDate;
-    private String dueDate;
+    private LocalDate borrowDate;
+    private LocalDate dueDate;
 
     public Book() {}
 
@@ -33,8 +35,8 @@ public class Book {
     public void setAuthor(String author) { this.author = author; }
     public boolean isBorrowed() { return borrowed; }
     public void setBorrowed(boolean borrowed) { this.borrowed = borrowed; }
-    public String getBorrowDate() { return borrowDate; }
-    public void setBorrowDate(String borrowDate) { this.borrowDate = borrowDate; }
-    public String getDueDate() { return dueDate; }
-    public void setDueDate(String dueDate) { this.dueDate = dueDate; }
+    public LocalDate getBorrowDate() { return borrowDate; }
+    public void setBorrowDate(LocalDate borrowDate) { this.borrowDate = borrowDate; }
+    public LocalDate getDueDate() { return dueDate; }
+    public void setDueDate(LocalDate dueDate) { this.dueDate = dueDate; }
 }

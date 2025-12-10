@@ -1,6 +1,7 @@
 
 package com.example.FinalProjectATP.controller;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.stereotype.Controller;
@@ -58,6 +59,8 @@ public class UserController {
         Book book = bookRepository.findById(bookId).orElse(null);
         if (book != null) {
             book.setBorrowed(true);
+            book.setBorrowDate(LocalDate.now());
+            book.setDueDate(LocalDate.now().plusWeeks(3));
 
             //update book with new isBorrowed value
             bookRepository.save(book);
@@ -80,6 +83,8 @@ public class UserController {
 
         if(book != null){
             book.setBorrowed(false);
+            book.setBorrowDate(null);
+            book.setDueDate(null);
             bookRepository.save(book);
         }
 
@@ -104,6 +109,14 @@ public class UserController {
     public String showLoginForm() {
         return "login";
     }
+
+    @GetMapping("/home")
+    public String showHomePage(Model model) {
+        model.addAttribute("username", "User");
+        loadBooks(model);
+        return "home";
+    }
+    
 
     // Show register page
     @GetMapping("/register")
