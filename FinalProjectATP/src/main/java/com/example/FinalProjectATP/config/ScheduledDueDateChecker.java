@@ -26,7 +26,8 @@ public class ScheduledDueDateChecker {
     }
 
     @Transactional // makes it so the database connection doesnt close
-    @Scheduled(fixedRate = 300000) // every 5 minutes
+    @Scheduled(fixedRate = 10000) // every 10 seconds (for testing)
+    //@Scheduled(fixedRate = 300000) // every 5 minutes
     public void checkingOverdueBooks(){
         LocalDate currentDate = LocalDate.now();
         List<Borrower> borrowers = borrowerRepository.findAll();

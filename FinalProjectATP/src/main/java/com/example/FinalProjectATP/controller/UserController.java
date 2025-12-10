@@ -4,9 +4,12 @@ package com.example.FinalProjectATP.controller;
 import java.time.LocalDate;
 import java.util.List;
 
-import com.example.FinalProjectATP.repository.NotificationRepository;
+
+import com.example.FinalProjectATP.service.BookService;
+import com.example.FinalProjectATP.service.BorrowerService;
+import com.example.FinalProjectATP.service.LibrarianService;
+import com.example.FinalProjectATP.service.NotificationService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.cglib.core.Local;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -15,16 +18,11 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
-
 import com.example.FinalProjectATP.form.BorrowerForm;
 import com.example.FinalProjectATP.model.Book;
 import com.example.FinalProjectATP.model.Borrower;
 import com.example.FinalProjectATP.model.Librarian;
 import com.example.FinalProjectATP.model.Notification;
-import com.example.FinalProjectATP.repository.BookRepository;
-import com.example.FinalProjectATP.repository.BorrowerRepository;
-import com.example.FinalProjectATP.repository.LibrarianRepository;
-
 import jakarta.servlet.http.HttpSession;
 import jakarta.validation.Valid;
 
@@ -34,17 +32,18 @@ public class UserController {
     private PasswordEncoder passwordEncoder;
 
 
-    private final BookRepository bookRepository;
-    private final BorrowerRepository borrowerRepository;
-    private final LibrarianRepository librarianRepository;
-    private final NotificationRepository notificationRepository;
+    private final BorrowerService borrowerService;
+    private final LibrarianService librarianService;
+    private final BookService bookService;
+    private final NotificationService notificationService;
 
-    public UserController(BookRepository bookRepository, BorrowerRepository borrowerRepository, LibrarianRepository librarianRepository, NotificationRepository notificationRepository) {
-        this.bookRepository = bookRepository;
-        this.borrowerRepository = borrowerRepository;
-        this.librarianRepository = librarianRepository;
-        this.notificationRepository = notificationRepository;
+    public UserController(BorrowerService borrowerService, LibrarianService librarianService, BookService bookService, NotificationService notificationService) {
+        this.borrowerService = borrowerService;
+        this.librarianService = librarianService;
+        this.bookService = bookService;
+        this.notificationService = notificationService;
     }
+
 
     //-------------------------------Login-------------------------------
     // Show login page
@@ -55,50 +54,44 @@ public class UserController {
 
     @PostMapping("/login")
     public String processLogin(@RequestParam String name, @RequestParam String password, HttpSession session, Model model) {
-        List<Borrower> borrowers = borrowerRepository.findAll();
-        List<Librarian> librarians = librarianRepository.findAll();
 
+        // authenticate borrower login
+        Borrower borrower = borrowerService.authenticate(name, password);
 
-        for(Borrower borrower: borrowers){
-            if(borrower.getName().equals(name)&&passwordEncoder.matches(password, borrower.getPassword())){
-                session.setAttribute("loggedInBorrower", borrower);
-                session.setAttribute("isLoggedIn", true);
-                System.out.println("Hashed Password: "+borrower.getPassword());
+        // if borrower authenticated successfully, establish session attributes
+        if (borrower != null){
+            session.setAttribute("loggedInBorrower", borrower);
+            session.setAttribute("isLoggedIn", true);
+            System.out.println("Hashed Password: "+borrower.getPassword());
+            model.addAttribute("username", borrower.getName());
 
+            // return a list of books if isBorrowed is false to the model
+            model.addAttribute("availableBooks", bookService.getAllAvailableBooks());
 
-
-                model.addAttribute("username", borrower.getName());
-
-                // return a list of books if isBorrowed is false to the model
-                model.addAttribute("availableBooks",
-                bookRepository.findAll().stream().filter(book -> !book.isBorrowed()).toList());
-
-                // return a list of books if isBorrowed is true to the model
-                model.addAttribute("borrowedBooks", borrower.getBasket());
-                return "home";
-            }
+            // return a list of books if isBorrowed is true to the model
+            model.addAttribute("borrowedBooks", borrower.getBasket());
+            return "home";
         }
 
-        for (Librarian librarian : librarians){
-            if(librarian.getName().equals(name)&&librarian.getPassword().equals(password)){
-                session.setAttribute("loggedInLibrarian", librarian);
-                session.setAttribute("isLoggedIn", true);
+
+        // authenticate librarian login
+        Librarian librarian = librarianService.authenticate(name, password);
+
+        // if librarian authenticated successfully, establish session attributes
+        if(librarian != null){
+            session.setAttribute("loggedInLibrarian", librarian);
+            session.setAttribute("isLoggedIn", true);
 
 
-                model.addAttribute("username", librarian.getName());
+            model.addAttribute("username", librarian.getName());
 
-                // return a list of books if isBorrowed is false to the model
-                model.addAttribute("availableBooks",
-                bookRepository.findAll().stream().filter(book -> !book.isBorrowed()).toList());
+            // return a list of books if isBorrowed is false to the model
+            model.addAttribute("availableBooks", bookService.getAllAvailableBooks());
 
-                // return a list of books if isBorrowed is true to the model
-                model.addAttribute("borrowedBooks",
-                bookRepository.findAll().stream()
-                    .filter(Book::isBorrowed)
-                    .toList());
+            // return a list of books if isBorrowed is true to the model
+            model.addAttribute("borrowedBooks", bookService.getAllBorrowedBooks());
 
-                return "home";
-            }
+            return "home";
         }
 
         return "login";
@@ -129,10 +122,8 @@ public class UserController {
             return "register";
         }
 
-        String hashedPassword = passwordEncoder.encode(form.getPassword());
-        Borrower newBorrower = new Borrower(form.getName(), form.getEmail(), hashedPassword);
-        borrowerRepository.save(newBorrower);
-        
+        borrowerService.register(form);
+
         return "login";
     }
 
@@ -147,8 +138,7 @@ public class UserController {
 
         Borrower sessionBorrower = (Borrower) session.getAttribute("loggedInBorrower");
         if (sessionBorrower != null) {
-            Borrower borrower = borrowerRepository.findById(sessionBorrower.getId())
-                .orElseThrow(() -> new RuntimeException("Borrower not found"));
+            Borrower borrower = borrowerService.getById(sessionBorrower.getId());
 
             // force Hibernate to initialize basket
             System.out.println("Basket Size: "+borrower.getBasket().size());
@@ -164,13 +154,9 @@ public class UserController {
         if (librarian != null) {
 
             // show books for librarian
-            model.addAttribute("availableBooks",
-                bookRepository.findAll().stream().filter(book -> !book.isBorrowed()).toList());
+            model.addAttribute("availableBooks", bookService.getAllAvailableBooks());
 
-            model.addAttribute("borrowedBooks",
-                bookRepository.findAll().stream()
-                    .filter(Book::isBorrowed)
-                    .toList());
+            model.addAttribute("borrowedBooks", bookService.getAllBorrowedBooks());
 
             return "home";
         }
@@ -184,27 +170,10 @@ public class UserController {
 
         if (sessionBorrower == null) return "login";
 
-        Borrower borrower = borrowerRepository.findById(sessionBorrower.getId())
-        .orElseThrow(() -> new RuntimeException("Borrower not found"));
+        bookService.borrowBook(bookId, sessionBorrower.getId());
 
-        Book book = bookRepository.findById(bookId).orElse(null);
-        
-        if (book != null) {
-            //update book status
-            book.setBorrowed(true);
-            book.setBorrowDate(LocalDate.now());
-            book.setDueDate(LocalDate.now().plusWeeks(3));
-            // book.setDueDate(LocalDate.of(2025, 12, 9)); // overdue book hack
-            book.setBorrower(borrower);
-
-            // add book to borrowerbasket
-            borrower.getBasket().add(book);
-
-            //update sesison, book, borrower
-            borrowerRepository.save(borrower);
-            bookRepository.save(book);
-            session.setAttribute("loggedInBorrower", borrower);
-        }
+        Borrower borrower = borrowerService.getById(sessionBorrower.getId());
+        session.setAttribute("loggedInBorrower", borrower);
 
         //reloads the books to the home page
         loadBooks(model, borrower);
@@ -219,29 +188,10 @@ public class UserController {
 
         if (sessionBorrower == null) return "login";
 
-        Borrower borrower = borrowerRepository.findById(sessionBorrower.getId())
-        .orElseThrow(() -> new RuntimeException("Borrower not found"));
+        bookService.returnBook(bookId, sessionBorrower.getId());
 
-        Book book = bookRepository.findById(bookId).orElse(null);
-
-        if(book != null){
-            if(borrower.getBasket().contains(book)){
-                //update borroed status in library
-                book.setBorrowed(false);
-                book.setBorrowDate(null);
-                book.setDueDate(null);
-
-
-                //remove book from borrower
-                borrower.getBasket().remove(book);
-
-                //save borrower, book and session
-                bookRepository.save(book);
-                borrowerRepository.save(borrower);
-                session.setAttribute("loggedInBorrower", borrower);
-            }
-
-        }
+        Borrower borrower = borrowerService.getById(sessionBorrower.getId());
+        session.setAttribute("loggedInBorrower", borrower);
 
         loadBooks(model, borrower);
         return "redirect:/home";
@@ -249,7 +199,7 @@ public class UserController {
 
     //--------------------------------LOAD BOOKS--------------------------------
     private void loadBooks(Model model, Borrower borrower) {
-        List<Book> allBooks = bookRepository.findAll();
+        List<Book> allBooks = bookService.getAllBooks();
         
 
         model.addAttribute("username", borrower.getName());
@@ -270,7 +220,7 @@ public class UserController {
     //--------------------------------NOTIFICATION--------------------------------
     private void checkForNotifications(Model model, Borrower borrower){
         // checks the database of notifications, seeing if the borrower passed in has any messages tied to them
-        List<Notification> notifications = notificationRepository.findByBorrower(borrower);
+        List<Notification> notifications = notificationService.getNotificationList(borrower);
 
         // if the system found anything
         if(!notifications.isEmpty()){
@@ -287,7 +237,7 @@ public class UserController {
 
     @PostMapping("/dismissNotification")
     public String dismissNotification(@RequestParam Long notificationId){
-        notificationRepository.deleteById(notificationId);
+        notificationService.dismissNotification(notificationId);
         return "redirect:/home";
     }
 }
