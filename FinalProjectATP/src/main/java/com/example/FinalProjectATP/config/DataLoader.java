@@ -18,7 +18,6 @@ public class DataLoader {
         return args -> {
 
             if (bookRepository.count() == 0) {
-
                 bookRepository.save(new Book("Harry Potter and the Sorcerer's Stone", "J.K. Rowling"));
                 bookRepository.save(new Book("Harry Potter and the Chamber of Secrets", "J.K. Rowling"));
                 bookRepository.save(new Book("Harry Potter and the Prisoner of Azkaban", "J.K. Rowling"));
@@ -70,7 +69,6 @@ public class DataLoader {
                 bookRepository.save(new Book("The Strange Case of Dr Jekyll and Mr Hyde", "Robert Louis Stevenson"));
                 bookRepository.save(new Book("Alice's Adventures in Wonderland", "Lewis Carroll"));
                 bookRepository.save(new Book("Through the Looking-Glass", "Lewis Carroll"));
-
 
                 System.out.println("Sample books loaded into database.");
             }

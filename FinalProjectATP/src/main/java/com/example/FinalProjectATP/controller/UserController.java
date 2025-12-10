@@ -4,7 +4,9 @@ package com.example.FinalProjectATP.controller;
 import java.time.LocalDate;
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.graphql.GraphQlProperties.Http;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.validation.BindingResult;
@@ -26,6 +28,10 @@ import jakarta.validation.Valid;
 
 @Controller
 public class UserController {
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+
     private final BookRepository bookRepository;
     private final BorrowerRepository borrowerRepository;
     private final LibrarianRepository librarianRepository;
@@ -50,9 +56,10 @@ public class UserController {
 
 
         for(Borrower borrower: borrowers){
-            if(borrower.getName().equals(name)&&borrower.getPassword().equals(password)){
+            if(borrower.getName().equals(name)&&passwordEncoder.matches(password, borrower.getPassword())){
                 session.setAttribute("loggedInBorrower", borrower);
                 session.setAttribute("isLoggedIn", true);
+                System.out.println("Hashed Password: "+borrower.getPassword());
 
 
 
@@ -118,7 +125,8 @@ public class UserController {
             return "register";
         }
 
-        Borrower newBorrower = new Borrower(form.getName(), form.getEmail(), form.getPassword());
+        String hashedPassword = passwordEncoder.encode(form.getPassword());
+        Borrower newBorrower = new Borrower(form.getName(), form.getEmail(), hashedPassword);
         borrowerRepository.save(newBorrower);
         
         return "login";
