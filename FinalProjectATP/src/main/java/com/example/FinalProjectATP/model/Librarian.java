@@ -25,6 +25,16 @@ public class Librarian extends Person{
         username = "L"+id;
         
     }
+
+    @Override
+    public String toString(){
+        return "(Librarian)" +
+                "Name: " + getName() + " " +
+                "Email: " + getEmail() +
+                "Password: " + getPassword() +
+                "ID: " + id +
+                "Username:" + username;
+    }
     
     public Long getId() {
         return id;
