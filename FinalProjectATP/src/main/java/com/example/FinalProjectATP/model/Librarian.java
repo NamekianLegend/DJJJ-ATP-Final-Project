@@ -4,6 +4,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.PostPersist;
 
 
 
@@ -16,9 +17,9 @@ public class Librarian extends Person{
     private String username;
 
 
+    public Librarian(){}
 
-
-    Librarian(String name, String email, String password){
+    public Librarian(String name, String email, String password){
         super(name, email, password);
 
         username = "L"+id;
@@ -37,7 +38,9 @@ public class Librarian extends Person{
         return username;
     }
 
-    public void setUsername(String username) {
-        this.username = username;
+    @PostPersist //call after saved in db so can make username based off of id
+    public void setUsername() {
+        this.username = "L"+getId();
     }
+
 }

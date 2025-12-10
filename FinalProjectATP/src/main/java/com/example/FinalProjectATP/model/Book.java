@@ -4,18 +4,23 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
+import jakarta.persistence.JoinColumn;
+import jakarta.persistence.ManyToOne;
 
 @Entity
 public class Book {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private String title;
     private String author;
     private boolean borrowed = false;
     private String borrowDate;
     private String dueDate;
+
+    @ManyToOne
+    @JoinColumn(name = "borrower_id")
+    private Borrower borrower;
 
     public Book() {}
 
@@ -37,4 +42,13 @@ public class Book {
     public void setBorrowDate(String borrowDate) { this.borrowDate = borrowDate; }
     public String getDueDate() { return dueDate; }
     public void setDueDate(String dueDate) { this.dueDate = dueDate; }
+
+    public Borrower getBorrower() {
+        return borrower;
+    }
+
+    public void setBorrower(Borrower borrower) {
+        this.borrower = borrower;
+    }
+    
 }
