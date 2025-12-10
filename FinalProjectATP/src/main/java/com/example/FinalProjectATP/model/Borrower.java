@@ -37,6 +37,16 @@ public class Borrower extends Person{
         super(name,email,password);
     }
 
+    @Override
+    public String toString(){
+        return "(Borrower)" +
+                "Name: " + getName() + " " +
+                "Email: " + getEmail() +
+                "Password: " + getPassword() +
+                "ID: " + id +
+                "Username:" + username;
+    }
+
     public Long getId() {
         return id;
     }

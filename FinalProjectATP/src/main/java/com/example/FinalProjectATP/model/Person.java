@@ -16,6 +16,13 @@ public class Person {
         this.password = password;
     }
 
+    public String toString(){
+        return "(Person)" +
+                "Name: " + name + " " +
+                "Email: " + email +
+                "Password: " + password;
+    }
+
     //Getters and Setters
     public String getName() {
         return name;
