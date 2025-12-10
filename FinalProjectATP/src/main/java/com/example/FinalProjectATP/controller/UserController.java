@@ -4,8 +4,9 @@ package com.example.FinalProjectATP.controller;
 import java.time.LocalDate;
 import java.util.List;
 
+import com.example.FinalProjectATP.repository.NotificationRepository;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.graphql.GraphQlProperties.Http;
+import org.springframework.cglib.core.Local;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,6 +20,7 @@ import com.example.FinalProjectATP.form.BorrowerForm;
 import com.example.FinalProjectATP.model.Book;
 import com.example.FinalProjectATP.model.Borrower;
 import com.example.FinalProjectATP.model.Librarian;
+import com.example.FinalProjectATP.model.Notification;
 import com.example.FinalProjectATP.repository.BookRepository;
 import com.example.FinalProjectATP.repository.BorrowerRepository;
 import com.example.FinalProjectATP.repository.LibrarianRepository;
@@ -35,11 +37,13 @@ public class UserController {
     private final BookRepository bookRepository;
     private final BorrowerRepository borrowerRepository;
     private final LibrarianRepository librarianRepository;
+    private final NotificationRepository notificationRepository;
 
-    public UserController(BookRepository bookRepository, BorrowerRepository borrowerRepository, LibrarianRepository librarianRepository) {
+    public UserController(BookRepository bookRepository, BorrowerRepository borrowerRepository, LibrarianRepository librarianRepository, NotificationRepository notificationRepository) {
         this.bookRepository = bookRepository;
         this.borrowerRepository = borrowerRepository;
         this.librarianRepository = librarianRepository;
+        this.notificationRepository = notificationRepository;
     }
 
     //-------------------------------Login-------------------------------
@@ -150,6 +154,9 @@ public class UserController {
             System.out.println("Basket Size: "+borrower.getBasket().size());
 
             loadBooks(model, borrower);  // ← IMPORTANT
+
+            checkForNotifications(model, borrower); // checks for any overdue notifications when the homepage loads
+
             return "home";
         }
 
@@ -187,6 +194,8 @@ public class UserController {
             book.setBorrowed(true);
             book.setBorrowDate(LocalDate.now());
             book.setDueDate(LocalDate.now().plusWeeks(3));
+            // book.setDueDate(LocalDate.of(2025, 12, 9)); // overdue book hack
+            book.setBorrower(borrower);
 
             // add book to borrowerbasket
             borrower.getBasket().add(book);
@@ -258,4 +267,27 @@ public class UserController {
         return "redirect:/login"; // Redirect to login page
     }
 
+    //--------------------------------NOTIFICATION--------------------------------
+    private void checkForNotifications(Model model, Borrower borrower){
+        // checks the database of notifications, seeing if the borrower passed in has any messages tied to them
+        List<Notification> notifications = notificationRepository.findByBorrower(borrower);
+
+        // if the system found anything
+        if(!notifications.isEmpty()){
+            // grab the notification
+            Notification alert = notifications.getFirst();
+
+            // add the alert message to the data model
+            model.addAttribute("overdueAlert", alert.getMessage());
+
+            // put the id in the model so we know which alert to delete when the user hits ok
+            model.addAttribute("notificationId", alert.getId());
+        }
+    }
+
+    @PostMapping("/dismissNotification")
+    public String dismissNotification(@RequestParam Long notificationId){
+        notificationRepository.deleteById(notificationId);
+        return "redirect:/home";
+    }
 }

@@ -44,6 +44,17 @@
         <p style="margin-top:16px;"><a th:href="@{/login}">Log out</a></p>
     </div>
 
+    <div th:if="${overdueAlert}" class="css-popup-overlay">
+        <div class="css-popup-box">
+            <h2>Attention!</h2>
+            <p th:text="${overdueAlert}"></p>
+
+            <form action="/dismissNotification" method="post">
+                <input type="hidden" name="notificationId" th:value="${notificationId}" />
+                <button type="submit" class="close-btn">OK, I understand</button>
+            </form>
+        </div>
+    </div>
     
 </body>
 </html>
