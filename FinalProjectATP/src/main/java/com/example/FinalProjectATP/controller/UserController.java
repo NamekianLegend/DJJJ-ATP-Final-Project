@@ -1,6 +1,7 @@
 
 package com.example.FinalProjectATP.controller;
 
+import java.time.LocalDate;
 import java.util.List;
 
 import org.springframework.boot.autoconfigure.graphql.GraphQlProperties.Http;
@@ -92,7 +93,6 @@ public class UserController {
         return "login";
     }
 
-
     //-------------------------------REGISTER-------------------------------
     // Show register page
     @GetMapping("/register")
@@ -127,42 +127,42 @@ public class UserController {
 
 
     //-------------------------------HOME-------------------------------
-@GetMapping("/home")
-public String loadHomePage(HttpSession session, Model model){
+    @GetMapping("/home")
+    public String loadHomePage(HttpSession session, Model model){
 
-    if (session.getAttribute("isLoggedIn") == null)
+        if (session.getAttribute("isLoggedIn") == null)
+            return "login";
+
+        Borrower sessionBorrower = (Borrower) session.getAttribute("loggedInBorrower");
+        if (sessionBorrower != null) {
+            Borrower borrower = borrowerRepository.findById(sessionBorrower.getId())
+                .orElseThrow(() -> new RuntimeException("Borrower not found"));
+
+            // force Hibernate to initialize basket
+            System.out.println("Basket Size: "+borrower.getBasket().size());
+
+            loadBooks(model, borrower);  // ← IMPORTANT
+            return "home";
+        }
+
+        Librarian librarian = (Librarian) session.getAttribute("loggedInLibrarian");
+        if (librarian != null) {
+
+            // show books for librarian
+            model.addAttribute("availableBooks",
+                bookRepository.findAll().stream().filter(book -> !book.isBorrowed()).toList());
+
+            model.addAttribute("borrowedBooks",
+                bookRepository.findAll().stream()
+                    .filter(Book::isBorrowed)
+                    .toList());
+
+            return "home";
+        }
+
         return "login";
-
-    Borrower sessionBorrower = (Borrower) session.getAttribute("loggedInBorrower");
-    if (sessionBorrower != null) {
-        Borrower borrower = borrowerRepository.findById(sessionBorrower.getId())
-            .orElseThrow(() -> new RuntimeException("Borrower not found"));
-
-        // force Hibernate to initialize basket
-        System.out.println("Basket Size: "+borrower.getBasket().size());
-
-        loadBooks(model, borrower);  // ← IMPORTANT
-        return "home";
     }
-
-    Librarian librarian = (Librarian) session.getAttribute("loggedInLibrarian");
-    if (librarian != null) {
-
-        // show books for librarian
-        model.addAttribute("availableBooks",
-            bookRepository.findAll().stream().filter(book -> !book.isBorrowed()).toList());
-
-        model.addAttribute("borrowedBooks",
-            bookRepository.findAll().stream()
-                .filter(Book::isBorrowed)
-                .toList());
-
-        return "home";
-    }
-
-    return "login";
-}
-    //Borrow book
+    //--------------------------------BORROW BOOK--------------------------------
     @PostMapping("borrow")
     public String borrowBook(@RequestParam Long bookId, HttpSession session, Model model) {
         Borrower sessionBorrower = (Borrower) session.getAttribute("loggedInBorrower");
@@ -177,6 +177,8 @@ public String loadHomePage(HttpSession session, Model model){
         if (book != null) {
             //update book status
             book.setBorrowed(true);
+            book.setBorrowDate(LocalDate.now());
+            book.setDueDate(LocalDate.now().plusWeeks(3));
 
             // add book to borrowerbasket
             borrower.getBasket().add(book);
@@ -193,7 +195,7 @@ public String loadHomePage(HttpSession session, Model model){
         return "redirect:/home";
     }
 
-
+    //--------------------------------RETURN BOOK--------------------------------
     @PostMapping("/return")
     public String returnBook(@RequestParam Long bookId, HttpSession session, Model model){
         Borrower sessionBorrower = (Borrower) session.getAttribute("loggedInBorrower");
@@ -209,7 +211,10 @@ public String loadHomePage(HttpSession session, Model model){
             if(borrower.getBasket().contains(book)){
                 //update borroed status in library
                 book.setBorrowed(false);
-                
+                book.setBorrowDate(null);
+                book.setDueDate(null);
+
+
                 //remove book from borrower
                 borrower.getBasket().remove(book);
 
@@ -218,13 +223,14 @@ public String loadHomePage(HttpSession session, Model model){
                 borrowerRepository.save(borrower);
                 session.setAttribute("loggedInBorrower", borrower);
             }
+
         }
 
         loadBooks(model, borrower);
         return "redirect:/home";
     }
 
-    //loads books into the available and unavialable books slot in home
+    //--------------------------------LOAD BOOKS--------------------------------
     private void loadBooks(Model model, Borrower borrower) {
         List<Book> allBooks = bookRepository.findAll();
         
@@ -237,9 +243,6 @@ public String loadHomePage(HttpSession session, Model model){
  
         model.addAttribute("borrowedBooks", borrower.getBasket());
     }
-
-
-
  
     @GetMapping("/logout")
     public String logout(HttpSession session) {
