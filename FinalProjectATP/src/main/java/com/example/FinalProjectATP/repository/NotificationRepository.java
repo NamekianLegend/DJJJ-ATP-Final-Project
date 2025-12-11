@@ -12,4 +12,7 @@ import java.util.List;
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
     // used to find notifications that are tied to the borrower given as the argument
     List<Notification> findByBorrower(Borrower borrower);
+
+    boolean existsByBorrowerAndMessage(Borrower borrower, String message);
+    void deleteByBorrowerAndMessage(Borrower borrower, String message);
 }

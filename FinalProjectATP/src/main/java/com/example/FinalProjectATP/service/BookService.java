@@ -4,6 +4,7 @@ import com.example.FinalProjectATP.model.Book;
 import com.example.FinalProjectATP.model.Borrower;
 import com.example.FinalProjectATP.repository.BookRepository;
 import com.example.FinalProjectATP.repository.BorrowerRepository;
+import com.example.FinalProjectATP.repository.NotificationRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -15,10 +16,12 @@ public class BookService {
 
     private final BookRepository bookRepository;
     private final BorrowerRepository borrowerRepository;
+    private final NotificationRepository notificationRepository;
 
-    public BookService(BookRepository bookRepository, BorrowerRepository borrowerRepository) {
+    public BookService(BookRepository bookRepository, BorrowerRepository borrowerRepository, NotificationRepository notificationRepository) {
         this.bookRepository = bookRepository;
         this.borrowerRepository = borrowerRepository;
+        this.notificationRepository = notificationRepository;
     }
 
     public List<Book> getAllAvailableBooks() {
@@ -65,6 +68,11 @@ public class BookService {
             book.setDueDate(null);
 
             borrower.getBasket().remove(book);
+
+            String overdueMessage = "Book overdue: " + book.getTitle();
+
+            // delete notification if its being returned
+            notificationRepository.deleteByBorrowerAndMessage(borrower, overdueMessage);
 
             bookRepository.save(book);
             borrowerRepository.save(borrower);

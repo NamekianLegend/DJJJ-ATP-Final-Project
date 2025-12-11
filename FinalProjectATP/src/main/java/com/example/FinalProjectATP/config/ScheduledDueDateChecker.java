@@ -40,9 +40,14 @@ public class ScheduledDueDateChecker {
                 if(currentDate.isAfter(book.getDueDate())){
                     // create a new notification in the database
                     String overdueMessage = "Book overdue: " + book.getTitle();
-                    Notification notification = new Notification(overdueMessage, borrower);
-                    notificationRepository.save(notification);
-                    System.out.println("Overdue book found");
+
+                    boolean alreadyNotified = notificationRepository.existsByBorrowerAndMessage(borrower, overdueMessage);
+
+                    if(!alreadyNotified){
+                        Notification notification = new Notification(overdueMessage, borrower);
+                        notificationRepository.save(notification);
+                        System.out.println("Overdue book found");
+                    }
                 }
             }
         }
