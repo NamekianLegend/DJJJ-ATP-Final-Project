@@ -5,6 +5,7 @@ import com.example.FinalProjectATP.model.Borrower;
 import com.example.FinalProjectATP.repository.BorrowerRepository;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -19,11 +20,13 @@ public class BorrowerService {
         this.passwordEncoder = passwordEncoder;
     }
 
+    @Transactional
     public Borrower register(BorrowerForm form) {
         String hashedPassword = passwordEncoder.encode(form.getPassword());
         Borrower newBorrower = new Borrower(form.getName(), form.getEmail(), hashedPassword);
         return borrowerRepository.save(newBorrower);
     }
+
 
     public Borrower authenticate(String name, String password) {
         List<Borrower> borrowers = borrowerRepository.findAll();
